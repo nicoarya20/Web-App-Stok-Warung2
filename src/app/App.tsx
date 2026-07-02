@@ -1,5 +1,5 @@
 import { useState, useMemo } from "react";
-import { Plus, Package, TrendingUp, ShoppingCart, AlertTriangle, X, Edit2, Trash2, ChevronUp, ChevronDown, BarChart2, Search } from "lucide-react";
+import { Plus, Package, TrendingUp, ShoppingCart, AlertTriangle, X, Edit2, Trash2, ChevronUp, ChevronDown, BarChart2, Search, Sun, Moon } from "lucide-react";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from "recharts";
 
 type Kategori = "Minuman" | "Makanan" | "Snack" | "Sembako" | "Rokok" | "Lainnya";
@@ -17,12 +17,12 @@ interface Barang {
 const KATEGORI_OPTIONS: Kategori[] = ["Minuman", "Makanan", "Snack", "Sembako", "Rokok", "Lainnya"];
 
 const KATEGORI_COLOR: Record<Kategori, string> = {
-  Minuman: "bg-blue-100 text-blue-700",
-  Makanan: "bg-orange-100 text-orange-700",
-  Snack: "bg-yellow-100 text-yellow-700",
-  Sembako: "bg-green-100 text-green-700",
-  Rokok: "bg-gray-100 text-gray-700",
-  Lainnya: "bg-purple-100 text-purple-700",
+  Minuman: "bg-blue-100 text-blue-700 dark:bg-blue-950/40 dark:text-blue-300 border border-blue-200/20 dark:border-blue-900/50",
+  Makanan: "bg-orange-100 text-orange-700 dark:bg-orange-950/40 dark:text-orange-300 border border-orange-200/20 dark:border-orange-900/50",
+  Snack: "bg-yellow-100 text-yellow-700 dark:bg-yellow-950/40 dark:text-yellow-300 border border-yellow-200/20 dark:border-yellow-900/50",
+  Sembako: "bg-green-100 text-green-700 dark:bg-green-950/40 dark:text-green-300 border border-green-200/20 dark:border-green-900/50",
+  Rokok: "bg-gray-100 text-gray-700 dark:bg-zinc-800 dark:text-zinc-300 border border-zinc-200/20 dark:border-zinc-700/50",
+  Lainnya: "bg-purple-100 text-purple-700 dark:bg-purple-950/40 dark:text-purple-300 border border-purple-200/20 dark:border-purple-900/50",
 };
 
 const INITIAL_DATA: Barang[] = [
@@ -82,6 +82,32 @@ export default function App() {
   const [sortAsc, setSortAsc] = useState(true);
   const [filterKat, setFilterKat] = useState<Kategori | "Semua">("Semua");
   const [deleteConfirm, setDeleteConfirm] = useState<number | null>(null);
+
+  const [darkMode, setDarkMode] = useState(() => {
+    if (typeof window !== "undefined") {
+      const saved = localStorage.getItem("darkMode");
+      if (saved !== null) {
+        const isDark = saved === "true";
+        if (isDark) document.documentElement.classList.add("dark");
+        else document.documentElement.classList.remove("dark");
+        return isDark;
+      }
+      const systemPrefers = window.matchMedia("(prefers-color-scheme: dark)").matches;
+      if (systemPrefers) document.documentElement.classList.add("dark");
+      return systemPrefers;
+    }
+    return false;
+  });
+
+  function toggleDarkMode() {
+    setDarkMode((prev) => {
+      const next = !prev;
+      localStorage.setItem("darkMode", String(next));
+      if (next) document.documentElement.classList.add("dark");
+      else document.documentElement.classList.remove("dark");
+      return next;
+    });
+  }
 
   const enriched = useMemo(
     () =>
@@ -207,12 +233,21 @@ export default function App() {
               <p className="text-xs opacity-75 leading-none">Kelola Jualan & Untung Rugi</p>
             </div>
           </div>
-          <button
-            onClick={openAdd}
-            className="flex items-center gap-1.5 bg-accent text-accent-foreground px-3 py-1.5 rounded-lg text-sm font-semibold hover:opacity-90 transition-opacity"
-          >
-            <Plus className="w-4 h-4" /> Tambah Barang
-          </button>
+          <div className="flex items-center gap-3">
+            <button
+              onClick={toggleDarkMode}
+              className="p-2 rounded-lg text-primary-foreground/90 hover:bg-primary-foreground/10 hover:text-primary-foreground transition-all cursor-pointer"
+              title="Ganti Tema"
+            >
+              {darkMode ? <Sun className="w-5 h-5 text-accent" /> : <Moon className="w-5 h-5 text-accent" />}
+            </button>
+            <button
+              onClick={openAdd}
+              className="flex items-center gap-1.5 bg-accent text-accent-foreground px-3 py-1.5 rounded-lg text-sm font-semibold hover:opacity-90 transition-opacity cursor-pointer"
+            >
+              <Plus className="w-4 h-4" /> Tambah Barang
+            </button>
+          </div>
         </div>
 
         {/* Tabs */}
@@ -243,21 +278,21 @@ export default function App() {
           <div className="space-y-6">
             {/* Stat cards */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-              <StatCard icon={<Package className="w-5 h-5" />} label="Total Item" value={String(stats.totalItem)} color="bg-blue-50 text-blue-600" />
-              <StatCard icon={<ShoppingCart className="w-5 h-5" />} label="Total Omzet" value={fmt(stats.totalOmzet)} color="bg-orange-50 text-orange-600" />
-              <StatCard icon={<TrendingUp className="w-5 h-5" />} label="Total Untung" value={fmt(stats.totalUntung)} color="bg-green-50 text-green-600" sub={`Modal: ${fmt(stats.totalModal)}`} />
-              <StatCard icon={<AlertTriangle className="w-5 h-5" />} label="Stok Menipis" value={String(stats.lowStock)} color="bg-red-50 text-red-600" sub="≤ 5 pcs" warn={stats.lowStock > 0} />
+              <StatCard icon={<Package className="w-5 h-5" />} label="Total Item" value={String(stats.totalItem)} color="bg-blue-50 text-blue-600 dark:bg-blue-950/40 dark:text-blue-300 border border-blue-100/50 dark:border-blue-900/40" />
+              <StatCard icon={<ShoppingCart className="w-5 h-5" />} label="Total Omzet" value={fmt(stats.totalOmzet)} color="bg-orange-50 text-orange-600 dark:bg-orange-950/40 dark:text-orange-300 border border-orange-100/50 dark:border-orange-900/40" />
+              <StatCard icon={<TrendingUp className="w-5 h-5" />} label="Total Untung" value={fmt(stats.totalUntung)} color="bg-green-50 text-green-600 dark:bg-green-950/40 dark:text-green-300 border border-green-100/50 dark:border-green-900/40" sub={`Modal: ${fmt(stats.totalModal)}`} />
+              <StatCard icon={<AlertTriangle className="w-5 h-5" />} label="Stok Menipis" value={String(stats.lowStock)} color="bg-red-50 text-red-600 dark:bg-red-950/40 dark:text-red-300 border border-red-100/50 dark:border-red-900/40" sub="≤ 5 pcs" warn={stats.lowStock > 0} />
             </div>
 
             {/* Low stock alert */}
             {stats.lowStock > 0 && (
-              <div className="bg-red-50 border border-red-200 rounded-xl p-4">
-                <p className="text-sm font-semibold text-red-700 mb-2 flex items-center gap-1.5">
+              <div className="bg-red-50 border border-red-200 dark:bg-red-950/20 dark:border-red-900/30 rounded-xl p-4">
+                <p className="text-sm font-semibold text-red-700 dark:text-red-400 mb-2 flex items-center gap-1.5">
                   <AlertTriangle className="w-4 h-4" /> Peringatan Stok Menipis
                 </p>
                 <div className="flex flex-wrap gap-2">
                   {enriched.filter((b) => b.sisaStok <= 5).map((b) => (
-                    <span key={b.id} className="bg-red-100 text-red-700 text-xs px-2.5 py-1 rounded-full font-medium">
+                    <span key={b.id} className="bg-red-100 text-red-700 dark:bg-red-950/40 dark:text-red-300 text-xs px-2.5 py-1 rounded-full font-medium">
                       {b.nama} — sisa {b.sisaStok}
                     </span>
                   ))}
@@ -270,11 +305,11 @@ export default function App() {
               <h2 className="font-display font-bold text-foreground mb-4">Top 7 Keuntungan Per Barang</h2>
               <ResponsiveContainer width="100%" height={220}>
                 <BarChart data={chartData} margin={{ top: 0, right: 0, left: 0, bottom: 0 }}>
-                  <XAxis dataKey="name" tick={{ fontSize: 11 }} tickLine={false} axisLine={false} />
-                  <YAxis tick={{ fontSize: 11 }} tickLine={false} axisLine={false} tickFormatter={(v) => `${v / 1000}rb`} />
+                  <XAxis dataKey="name" tick={{ fontSize: 11, fill: "var(--muted-foreground)" }} tickLine={false} axisLine={false} />
+                  <YAxis tick={{ fontSize: 11, fill: "var(--muted-foreground)" }} tickLine={false} axisLine={false} tickFormatter={(v) => `${v / 1000}rb`} />
                   <Tooltip
                     formatter={(v: number, name: string) => [fmt(v), name === "untung" ? "Keuntungan" : "Terjual"]}
-                    contentStyle={{ borderRadius: 10, border: "1px solid var(--border)", fontSize: 12 }}
+                    contentStyle={{ borderRadius: 10, border: "1px solid var(--border)", fontSize: 12, backgroundColor: "var(--card)", color: "var(--foreground)" }}
                   />
                   <Bar dataKey="untung" radius={[6, 6, 0, 0]}>
                     {chartData.map((_, i) => (
@@ -311,7 +346,7 @@ export default function App() {
                           </td>
                           <td className="text-right py-2.5 pr-4 font-medium">{items.length}</td>
                           <td className="text-right py-2.5 pr-4">{totalTerjual} pcs</td>
-                          <td className="text-right py-2.5 font-semibold text-green-700">{fmt(totalUntung)}</td>
+                          <td className="text-right py-2.5 font-semibold text-green-700 dark:text-green-400">{fmt(totalUntung)}</td>
                         </tr>
                       );
                     })}
@@ -393,17 +428,17 @@ export default function App() {
                         <td className="py-3 px-3">{b.stokAwal}</td>
                         <td className="py-3 px-3 text-primary font-semibold">{b.terjual}</td>
                         <td className="py-3 px-3">
-                          <span className={`font-bold ${b.sisaStok <= 5 ? "text-red-600" : b.sisaStok <= 15 ? "text-yellow-600" : "text-green-700"}`}>
+                          <span className={`font-bold ${b.sisaStok <= 5 ? "text-red-600 dark:text-red-400" : b.sisaStok <= 15 ? "text-yellow-600 dark:text-yellow-400" : "text-green-700 dark:text-green-400"}`}>
                             {b.sisaStok}
                           </span>
                         </td>
-                        <td className="py-3 px-3 font-semibold text-green-700">{fmt(b.keuntungan)}</td>
+                        <td className="py-3 px-3 font-semibold text-green-700 dark:text-green-400">{fmt(b.keuntungan)}</td>
                         <td className="py-3 px-3">
                           <div className="flex gap-1.5 justify-center">
-                            <button onClick={() => openEdit(b)} className="p-1.5 rounded-lg hover:bg-blue-100 text-blue-600 transition-colors">
+                            <button onClick={() => openEdit(b)} className="p-1.5 rounded-lg hover:bg-blue-100 dark:hover:bg-blue-950/40 text-blue-600 dark:text-blue-400 transition-colors">
                               <Edit2 className="w-3.5 h-3.5" />
                             </button>
-                            <button onClick={() => setDeleteConfirm(b.id)} className="p-1.5 rounded-lg hover:bg-red-100 text-red-500 transition-colors">
+                            <button onClick={() => setDeleteConfirm(b.id)} className="p-1.5 rounded-lg hover:bg-red-100 dark:hover:bg-red-950/40 text-red-500 dark:text-red-400 transition-colors">
                               <Trash2 className="w-3.5 h-3.5" />
                             </button>
                           </div>
@@ -427,7 +462,7 @@ export default function App() {
                         <td className="py-3 px-3">{filtered.reduce((s, b) => s + b.stokAwal, 0)}</td>
                         <td className="py-3 px-3 text-primary">{filtered.reduce((s, b) => s + b.terjual, 0)}</td>
                         <td className="py-3 px-3">{filtered.reduce((s, b) => s + b.sisaStok, 0)}</td>
-                        <td className="py-3 px-3 text-green-700">{fmt(filtered.reduce((s, b) => s + b.keuntungan, 0))}</td>
+                        <td className="py-3 px-3 text-green-700 dark:text-green-400">{fmt(filtered.reduce((s, b) => s + b.keuntungan, 0))}</td>
                         <td />
                       </tr>
                     </tfoot>
@@ -491,7 +526,7 @@ export default function App() {
                           </div>
                           <div className="flex justify-between">
                             <span className="text-muted-foreground">Keuntungan</span>
-                            <span className="font-semibold text-green-700">{fmt((b.hargaJual - b.hargaBeli) * qty)}</span>
+                            <span className="font-semibold text-green-700 dark:text-green-400">{fmt((b.hargaJual - b.hargaBeli) * qty)}</span>
                           </div>
                         </>
                       );
@@ -502,15 +537,15 @@ export default function App() {
                 <button
                   onClick={handleJual}
                   disabled={!jualForm.barangId}
-                  className="w-full bg-primary text-primary-foreground py-3 rounded-xl font-semibold text-sm hover:opacity-90 transition-opacity disabled:opacity-40 disabled:cursor-not-allowed"
+                  className="w-full bg-primary text-primary-foreground py-3 rounded-xl font-semibold text-sm hover:opacity-90 transition-opacity disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
                 >
                   Catat Penjualan
                 </button>
 
                 {jualMsg && (
-                  <div className={`rounded-xl p-3 text-sm font-medium flex items-center justify-between ${jualMsg.startsWith("✓") ? "bg-green-50 text-green-700 border border-green-200" : "bg-red-50 text-red-700 border border-red-200"}`}>
+                  <div className={`rounded-xl p-3 text-sm font-medium flex items-center justify-between ${jualMsg.startsWith("✓") ? "bg-green-50 text-green-700 border border-green-200 dark:bg-green-950/20 dark:text-green-400 dark:border-green-900/30" : "bg-red-50 text-red-700 border border-red-200 dark:bg-red-950/20 dark:text-red-400 dark:border-red-900/30"}`}>
                     {jualMsg}
-                    <button onClick={() => setJualMsg(null)}>
+                    <button onClick={() => setJualMsg(null)} className="cursor-pointer">
                       <X className="w-4 h-4" />
                     </button>
                   </div>
@@ -527,7 +562,7 @@ export default function App() {
                     <span className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${i === 0 ? "bg-accent text-accent-foreground" : "bg-muted text-muted-foreground"}`}>{i + 1}</span>
                     <span className="flex-1 text-sm font-medium">{b.nama}</span>
                     <span className="text-sm text-muted-foreground">{b.terjual}x</span>
-                    <span className="text-sm font-semibold text-green-700">{fmt(b.keuntungan)}</span>
+                    <span className="text-sm font-semibold text-green-700 dark:text-green-400">{fmt(b.keuntungan)}</span>
                   </div>
                 ))}
               </div>
@@ -580,7 +615,7 @@ export default function App() {
               </div>
 
               {form.hargaBeli && form.hargaJual && (
-                <div className="bg-green-50 border border-green-200 rounded-xl px-4 py-2.5 text-sm text-green-700">
+                <div className="bg-green-50 border border-green-200 dark:bg-green-950/20 dark:border-green-900/30 rounded-xl px-4 py-2.5 text-sm text-green-700 dark:text-green-400">
                   Margin per pcs: <strong>{fmt(parseInt(form.hargaJual || "0") - parseInt(form.hargaBeli || "0"))}</strong>
                 </div>
               )}

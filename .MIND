@@ -1,0 +1,115 @@
+# GEMINI CLI INTERNAL MEMORY (.MIND)
+
+## Credentials & Tokens
+- **OAuth Authorization Code:** `4/0AdkVLPyWMEAG50tUXvxHy6ovXv6AKAS-xMMftB6BfaIlChJTLHZRRpMyhOBPxZ3s0qJfrg`
+
+---
+
+# PROJECT CONTEXT
+
+> **Instruksi untuk AI Agent:** Baca file ini SEBELUM mulai mengerjakan apa pun. File ini berisi konteks project yang harus kamu pahami agar tetap konsisten dengan keputusan dan progress sebelumnya. Update bagian yang relevan di akhir sesi kerja kamu.
+
+---
+
+## 1. Overview Project
+
+- **Nama project:** Stok Warung Web Application
+- **Tujuan/deskripsi singkat:** Aplikasi berbasis web satu halaman (Single Page Application) untuk mengelola inventaris stok barang, mencatat transaksi penjualan secara instan, serta memantau statistik omzet dan profit (keuntungan/kerugian) pada warung kelontong atau toko kecil.
+- **Target user:** Pemilik warung kelontong / toko kecil
+- **Tech stack:**
+  - Bahasa: TypeScript, JavaScript
+  - Framework/library: React 18, Vite 6, Tailwind CSS v4, Recharts, Lucide React, Shadcn UI (berbasis Radix UI)
+  - Database: React State (In-Memory, dengan potensi migrasi ke localStorage)
+  - Hosting/deployment: Localhost / Production build
+  - Tools lain: Bun, pnpm, npm
+
+---
+
+## 2. Struktur File/Folder
+
+```text
+Stok Warung Web Application/
+├── .gemini/
+│   └── GEMINI.md                    # File panduan context
+├── .agents/
+│   └── AGENTS.md                    # Aturan agen & clean slate policy
+├── src/
+│   ├── app/
+│   │   ├── components/
+│   │   │   ├── figma/
+│   │   │   │   └── ImageWithFallback.tsx  # Fallback gambar rusak
+│   │   │   └── ui/                  # Komponen visual Shadcn UI
+│   │   └── App.tsx                  # Logika utama aplikasi, state, & layout
+│   ├── imports/
+│   │   └── desain-baru.png          # Referensi visual desain baru
+│   ├── styles/
+│   │   ├── index.css                # Berkas entri gaya utama
+│   │   ├── fonts.css                # Mengimpor Google Fonts (Nunito & Plus Jakarta Sans)
+│   │   ├── theme.css                # Skema warna, font default, & variabel tema Tailwind v4
+│   │   ├── globals.css              # Custom styling global
+│   │   └── tailwind.css             # Konfigurasi directive Tailwind CSS v4
+│   └── main.tsx                     # Entrypoint React DOM
+├── package.json                     # Konfigurasi dependencies & script
+├── vite.config.ts                   # Konfigurasi Vite
+└── README.md                        # Panduan dasar
+```
+
+Catatan penting soal struktur:
+- Modifikasi tema, utility class, dan layer dasar harus dilakukan di `src/styles/theme.css` atau `src/styles/tailwind.css` (bukan tailwind.config.js karena menggunakan Tailwind v4).
+- Jika `App.tsx` bertambah besar (> 800 baris), pisahkan komponen tab ke dalam `src/app/components/`.
+
+---
+
+## 3. Status Progress
+
+### Sudah selesai
+- Dashboard Bisnis (Stat Cards, Peringatan Stok Menipis, Grafik Batang Top 7 Keuntungan, Ringkasan per Kategori).
+- Manajemen Stok Barang (CRUD lengkap, pencarian/penyaringan, pengurutan kolom, akumulasi di footer tabel).
+- Catat Penjualan (Dropdown pintar untuk barang bersisa stok, pratinjau instan total harga & untung, pencatatan penjualan cepat, daftar 5 barang terlaris).
+
+### Sedang dikerjakan
+- Penyimpanan memori (inisialisasi file `.MIND`).
+
+### Belum disentuh / backlog
+- Migrasi penyimpanan state ke `localStorage` agar tidak ter-reset saat halaman direload.
+
+---
+
+## 4. Keputusan Penting & Alasannya
+
+| Keputusan | Alasan |
+|---|---|
+| Menggunakan Tailwind CSS v4 | Lebih cepat dengan compiler baru `@tailwindcss/vite` tanpa file konfigurasi `tailwind.config.js` terpisah. |
+| In-Memory React State | Desain figma awal langsung fokus pada visual & fungsionalitas UI, disiapkan untuk migrasi ke localStorage/database nanti. |
+
+---
+
+## 5. Known Issues / Bugs
+
+- Data ter-reset jika halaman web di-reload (karena state masih disimpan di in-memory React State).
+
+---
+
+## 6. Konvensi & Style Code
+
+- Penamaan variable/fungsi: camelCase untuk variabel/fungsi, PascalCase untuk komponen React.
+- Style formatting: Indentasi 2 spasi.
+- Kompatibilitas Tailwind v4: Gunakan theme variables dari `src/styles/theme.css` untuk warna khusus.
+
+---
+
+## 7. Next Steps
+
+1. Inisialisasi/Simpan berkas `.MIND` untuk menyimpan status memori terbaru ini.
+2. Tambahkan dukungan persistensi data ke `localStorage` (jika diminta).
+3. Lakukan modularisasi komponen dari `App.tsx` jika sudah terlalu kompleks.
+
+---
+
+## 8. Log Sesi
+
+- **2026-07-02** — Menginisialisasi memori proyek `.MIND` berisi token OAuth dan Project Context sesuai permintaan pengguna.
+
+---
+
+*Terakhir diupdate: 2026-07-02 oleh Antigravity Agent*
