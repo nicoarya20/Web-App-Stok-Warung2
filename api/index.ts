@@ -1,7 +1,7 @@
 import "dotenv/config";
 import { Hono } from "hono";
 import { handle } from "hono/vercel";
-import { auth } from "../server/auth";
+import { auth } from "../server/auth.js";
 
 export const config = { runtime: "nodejs" };
 
