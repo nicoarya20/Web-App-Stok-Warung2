@@ -117,3 +117,12 @@ route-and-paths.json
 
 # Bun
 .bun
+
+# Catatan diskusi pribadi
+.Diskusi/
+
+# SQLite local database (contains user data)
+*.db
+*.db-journal
+*.db-shm
+*.db-wal
