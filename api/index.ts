@@ -8,4 +8,7 @@ export const config = { runtime: "nodejs" };
 const app = new Hono();
 app.on(["POST", "GET"], "/api/auth/**", (c) => auth.handler(c.req.raw));
 
-export default handle(app);
+const handler = handle(app);
+
+export const GET = handler;
+export const POST = handler;
