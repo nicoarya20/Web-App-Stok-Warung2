@@ -1,9 +1,6 @@
-import "dotenv/config";
 import { betterAuth } from "better-auth";
 import { admin, createAccessControl } from "better-auth/plugins";
-import { Pool } from "pg";
-
-const db = new Pool({ connectionString: process.env.DATABASE_URL });
+import { db } from "./db.js";
 
 const ac = createAccessControl({
   user: ["create", "list", "set-role", "ban", "impersonate", "delete", "set-password", "set-email", "get", "update"],

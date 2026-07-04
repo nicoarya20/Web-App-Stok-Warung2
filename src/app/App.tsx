@@ -1,7 +1,8 @@
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo, useEffect, useCallback } from "react";
 import { Plus, Package, ShoppingCart, BarChart2, ClipboardList } from "lucide-react";
-import { Barang, Kategori, FormState, JualForm, SortKey, Tab, Transaksi, INITIAL_DATA, EMPTY_FORM, fmt } from "@/app/types";
+import { Barang, Kategori, FormState, JualForm, SortKey, Tab, Transaksi, EMPTY_FORM, fmt } from "@/app/types";
 import { useSession, signOut } from "@/lib/auth-client";
+import { api } from "@/lib/api";
 import DashboardTab from "@/app/components/DashboardTab";
 import StockTableTab from "@/app/components/StockTableTab";
 import SalesLoggerTab from "@/app/components/SalesLoggerTab";
@@ -10,28 +11,13 @@ import { BarangModal, DeleteConfirmModal, RestockModal } from "@/app/components/
 import LoginPage from "@/app/components/LoginPage";
 import ProfilePage from "@/app/components/ProfilePage";
 
-function useLocalStorage<T>(key: string, initial: T): [T, React.Dispatch<React.SetStateAction<T>>] {
-  const [value, setValue] = useState<T>(() => {
-    try {
-      const stored = localStorage.getItem(key);
-      return stored ? (JSON.parse(stored) as T) : initial;
-    } catch {
-      return initial;
-    }
-  });
-
-  useEffect(() => {
-    localStorage.setItem(key, JSON.stringify(value));
-  }, [key, value]);
-
-  return [value, setValue];
-}
-
 export default function App() {
   const { data: session, isPending: sessionLoading } = useSession();
 
   const [tab, setTab] = useState<Tab>("dashboard");
-  const [barangs, setBarangs] = useLocalStorage<Barang[]>("stok-warung-barangs", INITIAL_DATA);
+  const [barangs, setBarangs] = useState<Barang[]>([]);
+  const [transaksi, setTransaksi] = useState<Transaksi[]>([]);
+  const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
   const [editId, setEditId] = useState<number | null>(null);
   const [form, setForm] = useState<FormState>(EMPTY_FORM);
@@ -43,7 +29,18 @@ export default function App() {
   const [filterKat, setFilterKat] = useState<Kategori | "Semua">("Semua");
   const [deleteConfirm, setDeleteConfirm] = useState<number | null>(null);
   const [restockTarget, setRestockTarget] = useState<Barang | null>(null);
-  const [transaksi, setTransaksi] = useLocalStorage<Transaksi[]>("stok-warung-transaksi", []);
+
+  const fetchAll = useCallback(async () => {
+    const [b, t] = await Promise.all([api.barang.list(), api.transaksi.list()]);
+    setBarangs(b);
+    setTransaksi(t);
+  }, []);
+
+  useEffect(() => {
+    if (!session) return;
+    setLoading(true);
+    fetchAll().finally(() => setLoading(false));
+  }, [session, fetchAll]);
 
   const enriched = useMemo(
     () =>
@@ -114,61 +111,66 @@ export default function App() {
     setShowModal(true);
   }
 
-  function handleSave() {
-    const hb = parseInt(form.hargaBeli) || 0;
-    const hj = parseInt(form.hargaJual) || 0;
-    const sa = parseInt(form.stokAwal) || 0;
-    const tj = parseInt(form.terjual) || 0;
-    if (!form.nama.trim()) return;
+  async function handleSave() {
+    const data = {
+      nama: form.nama,
+      kategori: form.kategori,
+      hargaBeli: parseInt(form.hargaBeli) || 0,
+      hargaJual: parseInt(form.hargaJual) || 0,
+      stokAwal: parseInt(form.stokAwal) || 0,
+      terjual: parseInt(form.terjual) || 0,
+    };
+    if (!data.nama.trim()) return;
     if (editId !== null) {
-      setBarangs((prev) =>
-        prev.map((b) =>
-          b.id === editId ? { ...b, nama: form.nama, kategori: form.kategori, hargaBeli: hb, hargaJual: hj, stokAwal: sa, terjual: tj } : b
-        )
-      );
+      await api.barang.update(editId, data);
     } else {
-      const id = Math.max(0, ...barangs.map((b) => b.id)) + 1;
-      setBarangs((prev) => [...prev, { id, nama: form.nama, kategori: form.kategori, hargaBeli: hb, hargaJual: hj, stokAwal: sa, terjual: tj }]);
+      await api.barang.create(data);
     }
     setShowModal(false);
+    api.barang.list().then(setBarangs);
   }
 
-  function handleDelete(id: number) {
-    setBarangs((prev) => prev.filter((b) => b.id !== id));
+  async function handleDelete(id: number) {
+    await api.barang.delete(id);
     setDeleteConfirm(null);
+    setBarangs((prev) => prev.filter((b) => b.id !== id));
   }
 
-  function handleRestock(id: number, qty: number) {
-    setBarangs((prev) => prev.map((b) => b.id === id ? { ...b, stokAwal: b.stokAwal + qty } : b));
+  async function handleRestock(id: number, qty: number) {
+    const updated = await api.barang.restock(id, qty);
     setRestockTarget(null);
+    setBarangs((prev) => prev.map((b) => (b.id === id ? updated : b)));
   }
 
-  function handleJual() {
+  async function handleJual() {
     const id = parseInt(jualForm.barangId);
     const qty = parseInt(jualForm.qty) || 0;
-    const b = barangs.find((x) => x.id === id);
-    if (!b || qty <= 0) return;
-    const sisa = b.stokAwal - b.terjual;
-    if (qty > sisa) { setJualMsg(`Stok ${b.nama} hanya tersisa ${sisa}!`); return; }
-    const now = Date.now();
-    setBarangs((prev) => prev.map((x) => x.id === id ? { ...x, terjual: x.terjual + qty } : x));
-    setTransaksi((prev) => [...prev, { id: now, barangId: id, nama: b.nama, qty, hargaJual: b.hargaJual, hargaBeli: b.hargaBeli, timestamp: now }]);
-    setJualMsg(`✓ Berhasil mencatat penjualan ${qty}x ${b.nama} — ${fmt(b.hargaJual * qty)}`);
-    setJualForm({ barangId: "", qty: "1" });
+    if (!id || qty <= 0) return;
+    try {
+      const t = await api.transaksi.create(id, qty);
+      setTransaksi((prev) => [t, ...prev]);
+      setBarangs((prev) => prev.map((b) => (b.id === id ? { ...b, terjual: b.terjual + qty } : b)));
+      const b = barangs.find((x) => x.id === id);
+      setJualMsg(`✓ Berhasil mencatat penjualan ${qty}x ${b?.nama} — ${fmt((b?.hargaJual ?? 0) * qty)}`);
+      setJualForm({ barangId: "", qty: "1" });
+    } catch (e: unknown) {
+      setJualMsg(e instanceof Error ? e.message : "Terjadi kesalahan");
+    }
   }
 
-  if (sessionLoading) {
-    return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin" />
-      </div>
-    );
-  }
+  const Spinner = () => (
+    <div className="min-h-screen bg-background flex items-center justify-center">
+      <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin" />
+    </div>
+  );
 
+  if (sessionLoading) return <Spinner />;
   if (!session) return <LoginPage />;
 
   const role = (session.user as { role?: string }).role;
   if (!role || role === "pending") return <ProfilePage user={session.user} />;
+
+  if (loading) return <Spinner />;
 
   return (
     <div className="min-h-screen bg-background font-body">
@@ -270,7 +272,6 @@ export default function App() {
           onClose={() => setShowModal(false)}
         />
       )}
-
       {deleteConfirm !== null && (
         <DeleteConfirmModal
           barang={barangs.find((b) => b.id === deleteConfirm)}
@@ -278,7 +279,6 @@ export default function App() {
           onClose={() => setDeleteConfirm(null)}
         />
       )}
-
       {restockTarget !== null && (
         <RestockModal
           barang={restockTarget}
