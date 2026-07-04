@@ -13,7 +13,7 @@ export interface Barang {
 export type EnrichedBarang = Barang & { sisaStok: number; keuntungan: number };
 
 export type SortKey = keyof Barang | "sisaStok" | "keuntungan";
-export type Tab = "dashboard" | "stok" | "jual" | "riwayat";
+export type Tab = "dashboard" | "stok" | "jual" | "riwayat" | "profile";
 
 export interface Transaksi {
   id: number;

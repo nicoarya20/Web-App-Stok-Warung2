@@ -10,6 +10,7 @@ import TransaksiTab from "@/app/components/TransaksiTab";
 import { BarangModal, DeleteConfirmModal, RestockModal } from "@/app/components/BarangModal";
 import LoginPage from "@/app/components/LoginPage";
 import ProfilePage from "@/app/components/ProfilePage";
+import ProfileTab from "@/app/components/ProfileTab";
 
 export default function App() {
   const { data: session, isPending: sessionLoading } = useSession();
@@ -172,6 +173,16 @@ export default function App() {
 
   if (loading) return <Spinner />;
 
+  if (tab === "profile") {
+    return (
+      <ProfileTab
+        user={session.user as { id: string; name: string; email: string; image?: string | null }}
+        role={role}
+        onBack={() => setTab("dashboard")}
+      />
+    );
+  }
+
   return (
     <div className="min-h-screen bg-background font-body">
       <header className="bg-primary text-primary-foreground shadow-lg sticky top-0 z-30">
@@ -196,15 +207,15 @@ export default function App() {
               <img
                 src={session.user.image}
                 alt={session.user.name}
-                onClick={() => signOut()}
+                onClick={() => setTab("profile")}
                 className="w-8 h-8 rounded-full object-cover border-2 border-accent cursor-pointer hover:opacity-80 transition-opacity"
-                title="Keluar"
+                title="Profil"
               />
             ) : (
               <button
-                onClick={() => signOut()}
+                onClick={() => setTab("profile")}
                 className="w-8 h-8 rounded-full bg-accent text-accent-foreground text-xs font-bold flex items-center justify-center hover:opacity-80 transition-opacity"
-                title="Keluar"
+                title="Profil"
               >
                 {session.user.name.charAt(0).toUpperCase()}
               </button>
